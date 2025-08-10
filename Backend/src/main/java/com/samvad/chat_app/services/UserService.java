@@ -11,19 +11,17 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 
 @Service
-//@RequiredArgsConstructor//........does this require
+@RequiredArgsConstructor//........does this require
 public class UserService {
+    @Autowired
+    private UserRepository userRepository;
 
-    private final UserRepository userRepository;
-
-    public UserService(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
-
-    public User getUserById(Long userId){
+    @Transactional(readOnly = true)
+    public User getUserById(Long userId) {
         return userRepository.getReferenceById(userId);
     }
 
+    @Transactional(readOnly = true)
     public Optional<User> getUserByEmail(String email) {
         return userRepository.findByEmail(email);
     }
@@ -41,6 +39,11 @@ public class UserService {
     public void recordUserLogin(Long userId) {
         userRepository.updateLastSeen(userId);
         userRepository.updateStatus(userId, User.Status.ONLINE);
+    }
+
+    @Transactional
+    public void updateLastSeen(Long userId) {
+        userRepository.updateLastSeen(userId);
     }
 
 //    @Transactional

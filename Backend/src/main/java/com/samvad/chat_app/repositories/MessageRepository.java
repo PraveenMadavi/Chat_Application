@@ -2,11 +2,13 @@ package com.samvad.chat_app.repositories;
 
 import com.samvad.chat_app.entities.Message;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 @Repository
+@EnableJpaRepositories(basePackages = "com.samvad.chat_app.repositories.jpa")
 public interface MessageRepository extends JpaRepository<Message, Long> {
 
     // Find all messages in a chat room
