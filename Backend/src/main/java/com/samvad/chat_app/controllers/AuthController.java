@@ -57,17 +57,18 @@ public class AuthController {
                                       HttpServletRequest request,
                                       HttpServletResponse response
     ) throws Exception {
-        System.out.println("CLIENT TRYING TO REGISTER USER ....");
+        log.info("CLIENT TRYING TO REGISTER USER ....");
         // Get session ID from request
         HttpSession session = request.getSession(false);
+
         if (session == null) {
+            log.error("sessionId is null.");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("SERVER IS EXPECTING JSESSIONID FROM THE CLIENT SIDE.");
         }
         String sessionId = session.getId();
 
         System.out.println("Session ID received: >>>> " + sessionId);
-
         System.out.println("payload : " + encryptedUserRequest.toString());
         System.out.println("Trying to get aesKey by session of httpServletRequest...");
 

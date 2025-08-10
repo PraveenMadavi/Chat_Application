@@ -8,4 +8,5 @@ import lombok.ToString;
 public class EncryptedUserRequest {
     private String encryptedPayload;
     private String iv;
+    private String sessionId;
 }

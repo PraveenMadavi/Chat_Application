@@ -2,6 +2,9 @@ package com.samvad.chat_app.configurations;
 
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletResponse;
+//import org.springframework.context.annotation.Bean;
+import org.springframework.boot.web.servlet.server.CookieSameSiteSupplier;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -14,7 +17,7 @@ public class CorsConfig implements WebMvcConfigurer {
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
                 .allowedOrigins("https://chat-application-ui-black.vercel.app/") // Frontend origin
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                .allowedMethods("*")
                 .allowedHeaders("*")
                 .exposedHeaders("Authorization")
                 .allowCredentials(true); // Allow cookies/auth
@@ -36,4 +39,10 @@ public class CorsConfig implements WebMvcConfigurer {
             }
         }
     }
+
+    @Bean
+    public CookieSameSiteSupplier applicationCookieSameSiteSupplier() {
+        return CookieSameSiteSupplier.ofNone().whenHasNameMatching("JSESSIONID");
+    }
+
 }
