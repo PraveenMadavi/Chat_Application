@@ -20,7 +20,7 @@ public class CorsConfig implements WebMvcConfigurer {
                 .allowCredentials(true); // Allow cookies/auth
     }
 
-    // This filter ensures SameSite=None; Secure for cookies
+//     This filter ensures SameSite=None; Secure for cookies
     @Configuration
     public static class SameSiteCookieFilter implements Filter {
         @Override

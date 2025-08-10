@@ -2,6 +2,8 @@ package com.samvad.chat_app.controllers;
 
 import com.samvad.chat_app.dto.EncryptedAesKey;
 import com.samvad.chat_app.dto.EncryptedMessage;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -42,7 +44,11 @@ public class CryptoController {
     }
 
     @PostMapping("/set-aes-key")
-    public ResponseEntity<String> setAesKey(@RequestBody EncryptedAesKey request, HttpSession session) throws Exception {
+    public ResponseEntity<?> setAesKey(@RequestBody EncryptedAesKey encryptedAesKey,
+                                       HttpServletRequest request,
+                                       HttpServletResponse response
+    ) throws Exception {
+        HttpSession session = request.getSession();
         System.out.println("Trying to set aesKey by the client");
         //Decrypt AES key with RSA private key
         try {
@@ -52,7 +58,7 @@ public class CryptoController {
 
 
             rsaCipher.init(Cipher.DECRYPT_MODE, rsaKeyPair.getPrivate());
-            byte[] aesKeyBytes = rsaCipher.doFinal(Base64.getDecoder().decode(request.getEncryptedAesKey()));
+            byte[] aesKeyBytes = rsaCipher.doFinal(Base64.getDecoder().decode(encryptedAesKey.getEncryptedAesKey()));
 
             System.out.println("Session ID: " + session.getId());
             session.setAttribute("aesKey", aesKeyBytes);

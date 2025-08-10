@@ -57,19 +57,24 @@ public class AuthController {
                                       HttpServletRequest request,
                                       HttpServletResponse response
     ) throws Exception {
-        System.out.println("Client trying to save user data...");
+        System.out.println("CLIENT TRYING TO REGISTER USER ....");
         // Get session ID from request
-        HttpSession session = request.getSession();
+        HttpSession session = request.getSession(false);
+        if (session == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("SERVER IS EXPECTING JSESSIONID FROM THE CLIENT SIDE.");
+        }
         String sessionId = session.getId();
 
         System.out.println("Session ID received: >>>> " + sessionId);
 
         System.out.println("payload : " + encryptedUserRequest.toString());
         System.out.println("Trying to get aesKey by session of httpServletRequest...");
-        
+
         byte[] keyBytes = (byte[]) session.getAttribute("aesKey");
         if (keyBytes == null) {
             System.out.println("Session ID: " + session.getId());
+            System.out.println("aesKey key not found in session.");
             throw new IllegalStateException("AES key not found in session");
         }
         SecretKey aesKey = new SecretKeySpec(keyBytes, "AES");
@@ -102,9 +107,15 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(
-            @RequestBody EncryptedLoginRequest request,
-            HttpSession session
+            @RequestBody EncryptedLoginRequest encryptedLoginRequest,
+            HttpServletRequest request,
+            HttpServletResponse response
     ) {
+        HttpSession session = request.getSession(false);
+        if (session==null){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("SERVER IS EXPECTING JSESSIONID FROM THE CLIENT SIDE.");
+        }
+
         try {
             log.info("Login attempt - Session ID: {}", session.getId());
 
@@ -116,14 +127,14 @@ public class AuthController {
                         .body("Session expired - please reload the page");
             }
 
-            // 2. Validate request payload
-            if (request.getIv() == null || request.getEncryptedPayload() == null) {
+            // 2. Validate encryptedLoginRequest payload
+            if (encryptedLoginRequest.getIv() == null || encryptedLoginRequest.getEncryptedPayload() == null) {
                 return ResponseEntity.badRequest().body("Missing required fields");
             }
 
             // 3. Decode IV and payload
-            byte[] ivBytes = Base64.getDecoder().decode(request.getIv());
-            byte[] encryptedBytes = Base64.getDecoder().decode(request.getEncryptedPayload());
+            byte[] ivBytes = Base64.getDecoder().decode(encryptedLoginRequest.getIv());
+            byte[] encryptedBytes = Base64.getDecoder().decode(encryptedLoginRequest.getEncryptedPayload());
 
             // 4. Initialize cipher
             SecretKey aesKey = new SecretKeySpec(keyBytes, "AES");
