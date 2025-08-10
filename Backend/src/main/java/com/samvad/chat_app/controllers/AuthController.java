@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.samvad.chat_app.dto.*;
 import com.samvad.chat_app.entities.User;
 import com.samvad.chat_app.jwt.JwtHelper;
+import com.samvad.chat_app.pojo.Clients;
 import com.samvad.chat_app.repositories.jpa.UserRepository;
 import com.samvad.chat_app.services.UserService;
 import com.samvad.chat_app.userdetails.CustomUserDetails;
@@ -52,32 +53,22 @@ public class AuthController {
     private EncryptedUserRequest encryptedUserRequest;
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody EncryptedUserRequest encryptedUserRequest,
-                                      HttpServletRequest request,
-                                      HttpServletResponse response
+    public ResponseEntity<?> register(@RequestBody EncryptedUserRequest encryptedUserRequest
     ) throws Exception {
         log.info("CLIENT TRYING TO REGISTER USER ....");
-        // Get session ID from request
-        HttpSession session = request.getSession(false);
+        int token = encryptedUserRequest.getToken();
 
-        if (session == null) {
-            log.error("sessionId is null.");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("SERVER IS EXPECTING JSESSIONID FROM THE CLIENT SIDE.");
-        }
-        String sessionId = session.getId();
-
-        System.out.println("Session ID received: >>>> " + sessionId);
         System.out.println("payload : " + encryptedUserRequest.toString());
         System.out.println("Trying to get aesKey by session of httpServletRequest...");
 
-        byte[] keyBytes = (byte[]) session.getAttribute("aesKey");
-        if (keyBytes == null) {
-            System.out.println("Session ID: " + session.getId());
-            System.out.println("aesKey key not found in session.");
-            throw new IllegalStateException("AES key not found in session");
+//        byte[] aesKeyBytes = (byte[]) session.getAttribute("aesKey");
+        byte[] aesKeyBytes = Clients.getAesKey(token);
+
+        if (aesKeyBytes == null) {
+            System.out.println("aesKey key not found in clients list of mapped with aesKey.");
+            throw new IllegalStateException("AES key not found in memory.");
         }
-        SecretKey aesKey = new SecretKeySpec(keyBytes, "AES");
+        SecretKey aesKey = new SecretKeySpec(aesKeyBytes, "AES");
 
         IvParameterSpec iv = new IvParameterSpec(Base64.getDecoder().decode(encryptedUserRequest.getIv()));
         Cipher aesCipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
@@ -92,7 +83,6 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("User already exists");
         }
 
-
         User user = new User();
         user.setUsername(userInfo.getName());
         user.setEmail(userInfo.getEmail());
@@ -104,40 +94,37 @@ public class AuthController {
         return ResponseEntity.ok("User registered successfully");  // edit later, don't sent userInfo
     }
 
+//.................................................................................................
+
 
     @PostMapping("/login")
     public ResponseEntity<?> login(
-            @RequestBody EncryptedLoginRequest encryptedLoginRequest,
-            HttpServletRequest request,
-            HttpServletResponse response
+            @RequestBody EncryptedLoginRequest encryptedLoginRequest
     ) {
-        HttpSession session = request.getSession(false);
-        if (session==null){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("SERVER IS EXPECTING JSESSIONID FROM THE CLIENT SIDE.");
-        }
+        log.info("login api hit ");
+
+        int token = encryptedLoginRequest.getToken();
 
         try {
-            log.info("Login attempt - Session ID: {}", session.getId());
-
-            // 1. Verify session key exists
-            byte[] keyBytes = (byte[]) session.getAttribute("aesKey");
-            if (keyBytes == null) {
-                log.error("No AES key found in session");
+//            byte[] aesKeyBytes = (byte[]) session.getAttribute("aesKey");
+            byte[] aesKeyBytes = Clients.getAesKey(token);
+            if (aesKeyBytes == null) {
+                log.error("No AES key found in memory");
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body("Session expired - please reload the page");
+                        .body("aesKey not found in memory with provided token.");
             }
 
-            // 2. Validate encryptedLoginRequest payload
+            // Validate encryptedLoginRequest payload
             if (encryptedLoginRequest.getIv() == null || encryptedLoginRequest.getEncryptedPayload() == null) {
                 return ResponseEntity.badRequest().body("Missing required fields");
-            }
+            } //  edit later
 
             // 3. Decode IV and payload
             byte[] ivBytes = Base64.getDecoder().decode(encryptedLoginRequest.getIv());
             byte[] encryptedBytes = Base64.getDecoder().decode(encryptedLoginRequest.getEncryptedPayload());
 
             // 4. Initialize cipher
-            SecretKey aesKey = new SecretKeySpec(keyBytes, "AES");
+            SecretKey aesKey = new SecretKeySpec(aesKeyBytes, "AES");
             Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
             cipher.init(Cipher.DECRYPT_MODE, aesKey, new IvParameterSpec(ivBytes));
 

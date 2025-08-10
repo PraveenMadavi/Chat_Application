@@ -2,8 +2,7 @@ package com.samvad.chat_app.controllers;
 
 import com.samvad.chat_app.dto.EncryptedAesKey;
 import com.samvad.chat_app.dto.EncryptedMessage;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import com.samvad.chat_app.pojo.Clients;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -41,31 +40,22 @@ public class CryptoController {
     }
 
     @PostMapping("/set-aes-key")
-    public ResponseEntity<?> setAesKey(@RequestBody EncryptedAesKey encryptedAesKey,
-                                       HttpServletRequest request,
-                                       HttpServletResponse response
+    public ResponseEntity<?> setAesKey(@RequestBody EncryptedAesKey encryptedAesKey
     ) throws Exception {
-        HttpSession session = request.getSession();
         System.out.println("Trying to set aesKey by the client");
         //Decrypt AES key with RSA private key
         try {
-//            Cipher rsaCipher = Cipher.getInstance("RSA");
             Cipher rsaCipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA-1AndMGF1Padding");
 //            Cipher rsaCipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-
 
             rsaCipher.init(Cipher.DECRYPT_MODE, rsaKeyPair.getPrivate());
             byte[] aesKeyBytes = rsaCipher.doFinal(Base64.getDecoder().decode(encryptedAesKey.getEncryptedAesKey()));
 
-            System.out.println("Session ID: " + session.getId());
-            session.setAttribute("aesKey", aesKeyBytes);
+            int token = Clients.setAesKey(aesKeyBytes);
 
-            //Store aesKey in session
-//            session.setAttribute("aesKey", aesKey);  // don't store row key
+            System.out.println("aes key set successfully....................@ "+token);
 
-            System.out.println("aes key set successfully....................");
-
-            return ResponseEntity.ok(session.getId());
+            return ResponseEntity.ok().body(token);
 
         } catch (NoSuchAlgorithmException e) {
             System.out.println("Error while setting aesKey...");
@@ -109,7 +99,6 @@ public class CryptoController {
 
 
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Error processing message");
         }

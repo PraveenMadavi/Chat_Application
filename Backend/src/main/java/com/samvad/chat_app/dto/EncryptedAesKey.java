@@ -6,5 +6,4 @@ import lombok.Data;
 @Data
 public class EncryptedAesKey {
     private String encryptedAesKey;
-//    private String sessionId; // Or any identifier
 }

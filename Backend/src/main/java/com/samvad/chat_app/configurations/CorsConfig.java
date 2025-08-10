@@ -16,7 +16,7 @@ public class CorsConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins("https://chat-application-ui-black.vercel.app/") // Frontend origin
+                .allowedOrigins("https://chat-application-ui-black.vercel.app/","http://localhost:5173/") // Frontend origin
                 .allowedMethods("*")
                 .allowedHeaders("*")
                 .exposedHeaders("Authorization")
