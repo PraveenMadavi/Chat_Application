@@ -7,6 +7,8 @@ import com.samvad.chat_app.jwt.JwtHelper;
 import com.samvad.chat_app.repositories.UserRepository;
 import com.samvad.chat_app.services.UserService;
 import com.samvad.chat_app.userdetails.CustomUserDetails;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,10 +53,20 @@ public class AuthController {
     private EncryptedUserRequest encryptedUserRequest;
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody EncryptedUserRequest encryptedUserRequest, HttpSession session) throws Exception {
+    public ResponseEntity<?> register(@RequestBody EncryptedUserRequest encryptedUserRequest,
+                                      HttpServletRequest request,
+                                      HttpServletResponse response
+    ) throws Exception {
         System.out.println("Client trying to save user data...");
-        System.out.println("payload : " + encryptedUserRequest.toString());
+        // Get session ID from request
+        HttpSession session = request.getSession();
+        String sessionId = session.getId();
 
+        System.out.println("Session ID received: >>>> " + sessionId);
+
+        System.out.println("payload : " + encryptedUserRequest.toString());
+        System.out.println("Trying to get aesKey by session of httpServletRequest...");
+        
         byte[] keyBytes = (byte[]) session.getAttribute("aesKey");
         if (keyBytes == null) {
             System.out.println("Session ID: " + session.getId());
