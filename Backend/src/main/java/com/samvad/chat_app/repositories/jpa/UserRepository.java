@@ -1,4 +1,4 @@
-    package com.samvad.chat_app.repositories;
+    package com.samvad.chat_app.repositories.jpa;
 
     import com.samvad.chat_app.entities.User;
     import jakarta.transaction.Transactional;

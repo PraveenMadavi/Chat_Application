@@ -1,11 +1,10 @@
 package com.samvad.chat_app.services;
 
 import com.samvad.chat_app.entities.Message;
-import com.samvad.chat_app.repositories.MessageRepository;
+import com.samvad.chat_app.repositories.jpa.MessageRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service

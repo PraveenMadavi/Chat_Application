@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.samvad.chat_app.dto.*;
 import com.samvad.chat_app.entities.User;
 import com.samvad.chat_app.jwt.JwtHelper;
-import com.samvad.chat_app.repositories.UserRepository;
+import com.samvad.chat_app.repositories.jpa.UserRepository;
 import com.samvad.chat_app.services.UserService;
 import com.samvad.chat_app.userdetails.CustomUserDetails;
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,7 +28,6 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
-import java.util.Optional;
 //import java.security.KeyPair;
 
 @RestController

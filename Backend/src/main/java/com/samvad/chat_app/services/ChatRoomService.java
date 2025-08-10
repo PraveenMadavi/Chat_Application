@@ -3,7 +3,7 @@ package com.samvad.chat_app.services;
 import com.samvad.chat_app.dto.ChatRoomDTO;
 import com.samvad.chat_app.entities.ChatRoom;
 import com.samvad.chat_app.entities.User;
-import com.samvad.chat_app.repositories.ChatRoomRepository;
+import com.samvad.chat_app.repositories.jpa.ChatRoomRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
