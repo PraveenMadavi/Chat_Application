@@ -7,7 +7,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.annotation.EnableCaching;
 
 @SpringBootApplication
-@EnableCaching
+//@EnableCaching
 public class ChatAppApplication {
 	public static final Logger logger = LoggerFactory.getLogger(ChatAppApplication.class);
 	public static void main(String[] args) {

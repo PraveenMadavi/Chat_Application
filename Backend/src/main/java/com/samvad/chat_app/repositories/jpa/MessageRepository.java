@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-@EnableJpaRepositories(basePackages = "com.samvad.chat_app.repositories.jpa")
+//@EnableJpaRepositories(basePackages = "com.samvad.chat_app.repositories.jpa")
 public interface MessageRepository extends JpaRepository<Message, Long> {
 
     // Find all messages in a chat room
