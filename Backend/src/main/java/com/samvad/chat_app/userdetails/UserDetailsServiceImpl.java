@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 
 
 @Service
-@RequiredArgsConstructor
+//@RequiredArgsConstructor
 public class UserDetailsServiceImpl implements UserDetailsService {
 
     @Autowired

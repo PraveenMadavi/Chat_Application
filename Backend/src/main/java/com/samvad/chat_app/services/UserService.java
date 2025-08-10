@@ -11,7 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 
 @Service
-@RequiredArgsConstructor//........does this require
+//@RequiredArgsConstructor//........does this require
 public class UserService {
     @Autowired
     private UserRepository userRepository;
