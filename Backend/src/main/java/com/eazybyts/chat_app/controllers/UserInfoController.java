@@ -1,0 +1,22 @@
+package com.samvaad.chat_app.controllers;
+
+import com.samvaad.chat_app.entities.User;
+import com.samvaad.chat_app.services.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("api/user")
+public class UserInfoController {
+    @Autowired
+    UserService userService;
+
+    @PostMapping("/info")
+    public User getInfo(@RequestBody Long userId){
+        return userService.getUserById(userId);
+    }
+
+}
