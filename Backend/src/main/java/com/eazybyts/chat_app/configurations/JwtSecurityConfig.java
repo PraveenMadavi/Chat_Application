@@ -1,7 +1,7 @@
-package com.samvaad.chat_app.configurations;
+package com.eazybyts.chat_app.configurations;
 
-import com.samvaad.chat_app.jwt.JwtAuthenticationEntryPoint;
-import com.samvaad.chat_app.jwt.JwtAuthenticationFilter;
+import com.eazybyts.chat_app.jwt.JwtAuthenticationEntryPoint;
+import com.eazybyts.chat_app.jwt.JwtAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

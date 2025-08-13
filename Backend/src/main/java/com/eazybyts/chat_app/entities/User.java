@@ -1,8 +1,9 @@
-package com.samvaad.chat_app.entities;
+package com.eazybyts.chat_app.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
-import java.time.LocalDateTime;
+
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,7 +13,6 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 @ToString
 public class User {
 
@@ -35,13 +35,13 @@ public class User {
     private String status = "OFFLINE";
 
     @Column(name = "last_seen_at")
-    private LocalDateTime lastSeenAt;
+    private Instant lastSeenAt;
 
     @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private Instant createdAt = Instant.now();
 
     @Column(name = "updated_at")
-    private LocalDateTime updatedAt = LocalDateTime.now();
+    private Instant updatedAt = Instant.now();
 
     @Column(name = "is_active")
     private boolean isActive = true;

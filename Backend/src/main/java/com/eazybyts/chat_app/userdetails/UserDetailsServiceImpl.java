@@ -1,8 +1,8 @@
-package com.samvaad.chat_app.userdetails;
+package com.eazybyts.chat_app.userdetails;
 
 
-import com.samvaad.chat_app.entities.User;
-import com.samvaad.chat_app.services.UserService;
+import com.eazybyts.chat_app.entities.User;
+import com.eazybyts.chat_app.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

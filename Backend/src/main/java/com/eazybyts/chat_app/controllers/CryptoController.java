@@ -1,8 +1,8 @@
-package com.samvaad.chat_app.controllers;
+package com.eazybyts.chat_app.controllers;
 
-import com.samvaad.chat_app.dto.EncryptedAesKey;
-import com.samvaad.chat_app.dto.EncryptedMessage;
-import com.samvaad.chat_app.components.Clients;
+import com.eazybyts.chat_app.dto.EncryptedAesKey;
+import com.eazybyts.chat_app.dto.EncryptedMessage;
+import com.eazybyts.chat_app.components.Clients;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,7 +32,7 @@ public class CryptoController {
         System.out.println("Client is tyring to fetch public key");
         // Get the public key from your RSA key pair
         PublicKey publicKey = rsaKeyPair.getPublic();
-        System.out.println("PublicKey : >" + publicKey);
+        // System.out.println("PublicKey : >" + publicKey);
         // Convert the public key to Base64 encoded string and return
         String publicKeyString = Base64.getEncoder().encodeToString(publicKey.getEncoded());
         System.out.println("public key encoded with base64 (to string) : " + publicKeyString);

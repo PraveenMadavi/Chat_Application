@@ -1,4 +1,4 @@
-package com.samvaad.chat_app.components;
+package com.eazybyts.chat_app.components;
 
 //import lombok.Data;
 //import org.bouncycastle.jce.provider.BouncyCastleProvider;

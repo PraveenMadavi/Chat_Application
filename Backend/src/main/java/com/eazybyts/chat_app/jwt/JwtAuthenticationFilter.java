@@ -1,6 +1,6 @@
-package com.samvaad.chat_app.jwt;
+package com.eazybyts.chat_app.jwt;
 
-import com.samvaad.chat_app.userdetails.UserDetailsServiceImpl;
+import com.eazybyts.chat_app.userdetails.UserDetailsServiceImpl;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

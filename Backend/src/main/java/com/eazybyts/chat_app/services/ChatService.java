@@ -1,15 +1,14 @@
-package com.samvaad.chat_app.services;
+package com.eazybyts.chat_app.services;
 
-import com.samvaad.chat_app.entities.ChatRoom;
-import com.samvaad.chat_app.entities.User;
-import com.samvaad.chat_app.repositories.jpa.ChatRoomRepository;
-import com.samvaad.chat_app.repositories.jpa.UserRepository;
+import com.eazybyts.chat_app.entities.ChatRoom;
+import com.eazybyts.chat_app.entities.User;
+import com.eazybyts.chat_app.repositories.jpa.ChatRoomRepository;
+import com.eazybyts.chat_app.repositories.jpa.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -29,7 +28,7 @@ public class ChatService {
 
         ChatRoom newRoom = new ChatRoom();
         newRoom.setName(roomName);
-        newRoom.setCreatedAt(LocalDateTime.now());
+        newRoom.setCreatedAt(Instant.now());
 
         user.addChatRoom(newRoom);
         return chatRoomRepository.save(newRoom);

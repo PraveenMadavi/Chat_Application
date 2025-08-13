@@ -1,7 +1,8 @@
-package com.samvaad.chat_app.dto;
+package com.eazybyts.chat_app.dto;
 
 import lombok.Data;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 @Data
@@ -11,6 +12,6 @@ public class MessageDto {
     private Long roomId;
     private Long recipientId;
     private String content;
-    private LocalDateTime sentAt;
+    private Instant sentAt;
     private boolean isRead;
 }

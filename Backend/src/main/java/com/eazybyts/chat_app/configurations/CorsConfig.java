@@ -1,4 +1,4 @@
-package com.samvaad.chat_app.configurations;
+package com.eazybyts.chat_app.configurations;
 
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletResponse;

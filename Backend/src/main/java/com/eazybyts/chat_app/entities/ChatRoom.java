@@ -1,13 +1,12 @@
-package com.samvaad.chat_app.entities;
+package com.eazybyts.chat_app.entities;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,8 +14,6 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-@Table(name = "chat_rooms")
 public class ChatRoom {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,21 +27,21 @@ public class ChatRoom {
 
     // Many-to-One relationship with User
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+//    @JoinColumn(name = "user_id", nullable = false)
     private User createdBy;
 
-    @Column(name = "created_at", updatable = false)
+    @Column(updatable = false)
     @CreationTimestamp
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     @Column(name = "is_private")
     private boolean isPrivate;
 
-    @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Message> messages = new ArrayList<>();
 
 
-    public void addMessage(Message message) {
+    public void addMessage(Message message) {             //
         messages.add(message);
         message.setChatRoom(this);
     }

@@ -1,6 +1,6 @@
-    package com.samvaad.chat_app.repositories.jpa;
+    package com.eazybyts.chat_app.repositories.jpa;
 
-    import com.samvaad.chat_app.entities.User;
+    import com.eazybyts.chat_app.entities.User;
     import jakarta.transaction.Transactional;
     import org.springframework.data.jpa.repository.JpaRepository;
     import org.springframework.data.jpa.repository.Modifying;
@@ -13,7 +13,6 @@
     import java.util.Optional;
 
     @Repository
-//    @EnableJpaRepositories(basePackages = "com.samvad.chat_app.repositories.jpa")
     public interface UserRepository extends JpaRepository<User, Long> {
 
         // Find by email (unique constraint ensures only one result)

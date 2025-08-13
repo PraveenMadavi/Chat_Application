@@ -1,4 +1,4 @@
-package com.samvaad.chat_app.jwt;
+package com.eazybyts.chat_app.jwt;
 
 import java.io.IOException;
 import java.io.PrintWriter;

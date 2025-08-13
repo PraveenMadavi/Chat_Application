@@ -1,11 +1,12 @@
-package com.samvaad.chat_app.dto;
+package com.eazybyts.chat_app.dto;
 
-import com.samvaad.chat_app.entities.ChatRoom;
+import com.eazybyts.chat_app.entities.ChatRoom;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import java.time.LocalDateTime;
+
+import java.time.Instant;
 
 @Data
 @Builder
@@ -22,7 +23,7 @@ public class ChatRoomDTO {
 
     private String createdByUsername;
 
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     private boolean isPrivate;
 

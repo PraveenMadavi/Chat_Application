@@ -1,7 +1,7 @@
-package com.samvaad.chat_app.services;
+package com.eazybyts.chat_app.services;
 
-import com.samvaad.chat_app.entities.User;
-import com.samvaad.chat_app.repositories.jpa.UserRepository;
+import com.eazybyts.chat_app.entities.User;
+import com.eazybyts.chat_app.repositories.jpa.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

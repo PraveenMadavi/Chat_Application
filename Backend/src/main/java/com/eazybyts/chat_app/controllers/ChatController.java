@@ -1,7 +1,7 @@
-package com.samvaad.chat_app.controllers;
+package com.eazybyts.chat_app.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.samvaad.chat_app.components.RSAUtil;
+import com.eazybyts.chat_app.components.RSAUtil;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;

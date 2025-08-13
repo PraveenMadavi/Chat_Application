@@ -1,12 +1,8 @@
-package com.samvaad.chat_app.services;
+package com.eazybyts.chat_app.services;
 
-import com.samvaad.chat_app.entities.Message;
-import com.samvaad.chat_app.repositories.jpa.MessageRepository;
+import com.eazybyts.chat_app.repositories.jpa.MessageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 public class MessageService {

@@ -1,6 +1,6 @@
-package com.samvaad.chat_app.controllers;
+package com.eazybyts.chat_app.controllers;
 
-import com.samvaad.chat_app.entities.Message;
+import com.eazybyts.chat_app.entities.Message;
 import lombok.Data;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;

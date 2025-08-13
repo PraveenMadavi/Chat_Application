@@ -1,4 +1,4 @@
-package com.samvaad.chat_app.entities;
+package com.eazybyts.chat_app.entities;
 
 import jakarta.persistence.*;
 import lombok.Data;

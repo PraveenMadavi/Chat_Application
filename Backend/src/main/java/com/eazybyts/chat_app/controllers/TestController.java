@@ -1,4 +1,4 @@
-package com.samvaad.chat_app.controllers;
+package com.eazybyts.chat_app.controllers;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;

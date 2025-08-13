@@ -1,7 +1,7 @@
-package com.samvaad.chat_app.dto;
+package com.eazybyts.chat_app.dto;
 
-import com.samvaad.chat_app.entities.Message;
-import com.samvaad.chat_app.entities.Participant;
+import com.eazybyts.chat_app.entities.Message;
+import com.eazybyts.chat_app.entities.Participant;
 import lombok.Data;
 import java.util.ArrayList;
 import java.util.List;

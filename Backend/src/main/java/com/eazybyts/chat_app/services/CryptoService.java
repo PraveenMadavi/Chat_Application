@@ -1,4 +1,11 @@
 package com.eazybyts.chat_app.services;
 
-public class CrytoService {
+import org.springframework.stereotype.Service;
+
+@Service
+public class CryptoService {
+
+//    public static encryptData(){
+//
+//    }
 }

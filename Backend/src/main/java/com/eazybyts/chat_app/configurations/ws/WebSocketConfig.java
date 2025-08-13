@@ -1,4 +1,4 @@
-package com.samvaad.chat_app.configurations.ws;
+package com.eazybyts.chat_app.configurations.ws;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
@@ -12,13 +12,13 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
-        config.enableSimpleBroker("/topic");          // Subscribe topic...
-        config.setApplicationDestinationPrefixes("/app");               // Desti_prefix...
+        config.enableSimpleBroker("/topic");    //  >>>  server broadcast ...
+        config.setApplicationDestinationPrefixes("/app");         //  <<<  user sending Data
     }
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/ws-chat")      // Handshake for register..........
+        registry.addEndpoint("/ws-chat")      //    >>>  <<< Handshake for register  ..........
                 .setAllowedOriginPatterns("*")
                 .withSockJS();
     }

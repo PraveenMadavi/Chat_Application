@@ -1,4 +1,4 @@
-package com.samvaad.chat_app.configurations;
+package com.eazybyts.chat_app.configurations;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

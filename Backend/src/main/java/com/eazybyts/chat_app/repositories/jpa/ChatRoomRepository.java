@@ -1,14 +1,13 @@
-package com.samvaad.chat_app.repositories.jpa;
+package com.eazybyts.chat_app.repositories.jpa;
 
-import com.samvaad.chat_app.entities.ChatRoom;
-import com.samvaad.chat_app.entities.User;
+import com.eazybyts.chat_app.entities.ChatRoom;
+import com.eazybyts.chat_app.entities.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 @Repository
-//@EnableJpaRepositories(basePackages = "com.samvad.chat_app.repositories.jpa")
 public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
     List<ChatRoom> findByIsPrivateFalse();
     List<ChatRoom> findByCreatedBy(User user);

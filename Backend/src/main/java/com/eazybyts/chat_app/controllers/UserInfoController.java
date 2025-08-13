@@ -1,7 +1,7 @@
-package com.samvaad.chat_app.controllers;
+package com.eazybyts.chat_app.controllers;
 
-import com.samvaad.chat_app.entities.User;
-import com.samvaad.chat_app.services.UserService;
+import com.eazybyts.chat_app.entities.User;
+import com.eazybyts.chat_app.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

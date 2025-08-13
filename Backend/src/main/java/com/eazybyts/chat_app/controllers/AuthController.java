@@ -1,13 +1,17 @@
-package com.samvaad.chat_app.controllers;
+package com.eazybyts.chat_app.controllers;
 
+import com.eazybyts.chat_app.components.AESUtil;
+import com.eazybyts.chat_app.dto.EncryptedLoginRequest;
+import com.eazybyts.chat_app.dto.EncryptedUserRequest;
+import com.eazybyts.chat_app.dto.LoginDto;
+import com.eazybyts.chat_app.dto.UserRegistrationDto;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.samvaad.chat_app.dto.*;
-import com.samvaad.chat_app.entities.User;
-import com.samvaad.chat_app.jwt.JwtHelper;
-import com.samvaad.chat_app.components.Clients;
-import com.samvaad.chat_app.repositories.jpa.UserRepository;
-import com.samvaad.chat_app.services.UserService;
-import com.samvaad.chat_app.userdetails.CustomUserDetails;
+import com.eazybyts.chat_app.entities.User;
+import com.eazybyts.chat_app.jwt.JwtHelper;
+import com.eazybyts.chat_app.components.Clients;
+import com.eazybyts.chat_app.repositories.jpa.UserRepository;
+import com.eazybyts.chat_app.services.UserService;
+import com.eazybyts.chat_app.userdetails.CustomUserDetails;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.slf4j.Logger;
@@ -45,6 +49,9 @@ public class AuthController {
 
     @Autowired
     private JwtHelper jwtHelper; // component
+
+    @Autowired
+    private AESUtil aesUtil;
 
     @Autowired
     private AuthenticationManager authenticationManager;
@@ -150,9 +157,10 @@ public class AuthController {
 //                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
             }
             // send response with encrypted user-data with token
-
+            User loggedUser = userRepository.findByEmail(loginDto.getUsername()).orElseThrow();
+//            aesUtil.decryptData(loggedUser.toString(),Base64.getEncoder().encodeToString(aesKey.getEncoded()),new IvParameterSpec(ivBytes));
             // client side app should store the token in cookie memory
-            return ResponseEntity.ok(new AuthResponse(jwtToken)); // sent userid.........................
+            return ResponseEntity.ok(new LogInResponse(jwtToken,loggedUser)); // sent userid.........................
 
         } catch (BadPaddingException e) {
             log.error("Decryption failed - padding error", e);
@@ -167,8 +175,9 @@ public class AuthController {
     //DTO
     @Data
     @AllArgsConstructor
-    public static class AuthResponse {
+    public static class LogInResponse {
         private String token;
+        User user;
     }
 
 

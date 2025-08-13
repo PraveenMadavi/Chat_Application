@@ -1,12 +1,10 @@
-package com.samvaad.chat_app.entities;
+package com.eazybyts.chat_app.entities;
 
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
+import java.time.Instant;
 
 @Entity
 @Table(name = "messages")
@@ -21,13 +19,13 @@ public class Message {
     private Long senderId;
     private String content;
     @Column(name = "is_read", nullable = false)
-    private boolean read;  //true = read || false = unread
-    private Timestamp time;
+    private boolean read;    //true = read || false = unread
+    private Instant time;
     private boolean status;  // true = delivered || false = undelivered
     private String senderName; // User.username
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "room_id")
+//    @JoinColumn()
     private ChatRoom chatRoom;
 
 //    @ManyToOne(fetch = FetchType.LAZY)

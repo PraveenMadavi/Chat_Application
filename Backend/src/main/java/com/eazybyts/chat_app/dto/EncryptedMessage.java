@@ -1,4 +1,4 @@
-package com.samvaad.chat_app.dto;
+package com.eazybyts.chat_app.dto;
 
 import lombok.Data;
 
