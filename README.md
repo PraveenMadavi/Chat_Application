@@ -1,0 +1,1 @@
+The project is in active development. We’re building secure messaging using a hybrid approach: RSA key pairs for exchanging AES session keys, and AES for fast message encryption. I am currently investigating and fixing issues affecting encryption and decryption. The remaining requirements and improvements will be pushed soon. Thank you for your support.
