@@ -9,6 +9,7 @@ import com.eazybyts.chat_app.repositories.jpa.MessageRepository;
 import com.eazybyts.chat_app.repositories.jpa.UserRepository;
 import jakarta.validation.Valid;
 import lombok.Data;
+import lombok.ToString;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,8 +41,9 @@ public class UserUtilityController {
         if (friend.isPresent()) {
             logger.info("Email {} is present.", mail.getEmail());
             FriendInfo friendInfo = new FriendInfo();
-            friendInfo.setId(friendInfo.id);
-            friendInfo.setUsername(friendInfo.getUsername());
+            friendInfo.setId(friend.get().getId());
+            friendInfo.setUsername(friend.get().getUsername());
+            System.out.println(friendInfo);
             return ResponseEntity.ok(friendInfo);
         } else {
             logger.warn("Email {} is not present.", mail.getEmail());
@@ -164,7 +166,9 @@ public class UserUtilityController {
         private String description;
         private boolean isPrivate; // Added this field
     }
+
     @Data
+    @ToString
     public static class FriendInfo{
         private Long id;
         private String username;
