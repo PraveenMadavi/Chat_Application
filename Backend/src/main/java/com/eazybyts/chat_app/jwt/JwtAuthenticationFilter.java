@@ -48,6 +48,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         try {
             String username = jwtHelper.getUsernameFromToken(jwt);
+            System.out.println("User authentication by jwt "+username);
 
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
@@ -63,6 +64,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                     logger.debug("Authenticated user: {}", username);
+                    System.out.println("User by jwt token authenticated ...");
                 }
             }
         } catch (ExpiredJwtException e) {

@@ -71,7 +71,6 @@ public class CryptoController {
             HttpSession session
     ) throws Exception {
         System.out.println("Now trying to get message......");
-        // 1. Retrieve AES key from cache
 //        SecretKey aesKey = (SecretKey) session.getAttribute("aesKey");
 //        SecretKey aesKey = new SecretKeySpec((byte[]) session.getAttribute("aesKey"), "AES");
 

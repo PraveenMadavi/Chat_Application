@@ -1,10 +1,12 @@
 package com.eazybyts.chat_app.controllers;
 
 import com.eazybyts.chat_app.components.AESUtil;
+import com.eazybyts.chat_app.components.CookieUtils;
 import com.eazybyts.chat_app.dto.EncryptedLoginRequest;
 import com.eazybyts.chat_app.dto.EncryptedUserRequest;
 import com.eazybyts.chat_app.dto.LoginDto;
 import com.eazybyts.chat_app.dto.UserRegistrationDto;
+import com.eazybyts.chat_app.services.CryptoService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.eazybyts.chat_app.entities.User;
 import com.eazybyts.chat_app.jwt.JwtHelper;
@@ -12,8 +14,10 @@ import com.eazybyts.chat_app.components.Clients;
 import com.eazybyts.chat_app.repositories.jpa.UserRepository;
 import com.eazybyts.chat_app.services.UserService;
 import com.eazybyts.chat_app.userdetails.CustomUserDetails;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.ToString;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,12 +55,14 @@ public class AuthController {
     private JwtHelper jwtHelper; // component
 
     @Autowired
-    private AESUtil aesUtil;
-
-    @Autowired
     private AuthenticationManager authenticationManager;
 
     private EncryptedUserRequest encryptedUserRequest;
+
+    @Autowired
+    private CryptoService cryptoService;
+
+
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody EncryptedUserRequest encryptedUserRequest
@@ -105,7 +111,8 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(
-            @RequestBody EncryptedLoginRequest encryptedLoginRequest
+            @RequestBody EncryptedLoginRequest encryptedLoginRequest,
+            HttpServletResponse response
     ) {
         log.info("login api hit ");
 
@@ -156,29 +163,36 @@ public class AuthController {
                 throw new RuntimeException("Could not authenticate user : " + loginDto.getUsername() + " : " + e);
 //                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
             }
+
+            // 3. Set HttpOnly cookie
+            CookieUtils.addHttpOnlyCookie(
+                    response,
+                    "jwtToken",
+                    jwtToken,
+                    24 * 60 * 60, // 1 day in seconds
+                    "/"           // Accessible across entire domain
+            );
+
             // send response with encrypted user-data with token
             User loggedUser = userRepository.findByEmail(loginDto.getUsername()).orElseThrow();
-//            aesUtil.decryptData(loggedUser.toString(),Base64.getEncoder().encodeToString(aesKey.getEncoded()),new IvParameterSpec(ivBytes));
-            // client side app should store the token in cookie memory
-            return ResponseEntity.ok(new LogInResponse(jwtToken,loggedUser)); // sent userid.........................
+            loggedUser.setPasswordHash("NA");
+            String userString = loggedUser.toString();
+
+            CryptoService.EncryptedData encryptedData = cryptoService.encrypt(userString, aesKeyBytes);
+
+            return ResponseEntity.ok(encryptedData); // sent userid.........................
+//            return ResponseEntity.ok(new LogInResponse(encryptedData.iv(),encryptedData.encryptedData())); // sent userid.........................
 
         } catch (BadPaddingException e) {
             log.error("Decryption failed - padding error", e);
             return ResponseEntity.badRequest().body("Invalid encryption parameters");
         } catch (Exception e) {
-            log.error("Login processing error", e);
+            log.error("Login processing error");
             return ResponseEntity.internalServerError().body("Login failed");
         }
     }
 
 
-    //DTO
-    @Data
-    @AllArgsConstructor
-    public static class LogInResponse {
-        private String token;
-        User user;
-    }
 
 
 }//END_OF_MAIN_CLASS
