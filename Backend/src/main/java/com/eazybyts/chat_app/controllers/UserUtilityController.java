@@ -20,7 +20,7 @@ import java.time.Instant;
 import java.util.Optional;
 
 @RestController
-@RequestMapping ("/user")
+@RequestMapping ("/ api/user")
 public class UserUtilityController {
     @Autowired
     UserRepository userRepository;
@@ -34,20 +34,22 @@ public class UserUtilityController {
     private static final Logger logger = LoggerFactory.getLogger(UserUtilityController.class);
 
     @GetMapping("/is-present")
-    public ResponseEntity<?> isUserPresent(@RequestBody UserId userId){
-        Optional<User> userOptional = userRepository.findByEmail(userId.getEmail());
+    public ResponseEntity<Boolean> isUserPresent(@RequestBody CheckMail mail) {
+        boolean exists = userRepository.findByEmail(mail.getEmail()).isPresent();
 
-        if (userOptional.isPresent()) {
-            return ResponseEntity.ok(userOptional.get().getId());
+        if (exists) {
+            logger.info("Email {} is present.", mail.getEmail());
+            return ResponseEntity.ok(true);
         } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User Not found...");
+            logger.warn("Email {} is not present.", mail.getEmail());
+            return ResponseEntity.ok(false);
         }
     }
 
-    @PostMapping("/create-chatroom")
+    @PostMapping("/create-chatroom") //
     public ResponseEntity<?> createRoom(@RequestBody RoomInfo roomInfo) {
         // Find creator user
-        Optional<User> creatorOptional = userRepository.findById(roomInfo.getCreaterId());
+        Optional<User> creatorOptional = userRepository.findById(roomInfo.getCreatorId());
         if (creatorOptional.isEmpty()) {
             logger.error("Chat room creator not found.");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Creator user not found");
@@ -55,12 +57,12 @@ public class UserUtilityController {
         User creator = creatorOptional.get();
 
         // Find participant user
-        Optional<User> participantOptional = userRepository.findById(roomInfo.getParticipentId());
-        if (participantOptional.isEmpty()) {
+        Optional<User> friendOptional = userRepository.findById(roomInfo.getFriendId());
+        if (friendOptional.isEmpty()) {
             logger.error("Chat room participant not found.");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Participant user not found");
         }
-        User participant = participantOptional.get();
+        User participant = friendOptional.get();
 
         // Create new chat room
         ChatRoom chatRoom = new ChatRoom();
@@ -145,15 +147,14 @@ public class UserUtilityController {
 
     // DTO classes
     @Data
-    public static class UserId{
-        private Long id; //creator , requester ,...
+    public static class CheckMail{
         private String email; //recipient email
     }
 
     @Data
     public static class RoomInfo {
-        private Long createrId;
-        private Long participentId;
+        private Long creatorId;
+        private Long friendId;
         private String name;
         private String description;
         private boolean isPrivate; // Added this field
