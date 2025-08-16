@@ -42,7 +42,7 @@ public class UserUtilityController {
             FriendInfo friendInfo = new FriendInfo();
             friendInfo.setId(friendInfo.id);
             friendInfo.setUsername(friendInfo.getUsername());
-            return ResponseEntity.ok(friend.get().getId());
+            return ResponseEntity.ok(friendInfo);
         } else {
             logger.warn("Email {} is not present.", mail.getEmail());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Email is not present");
