@@ -28,6 +28,7 @@ public class JwtSecurityConfig {
                         // authenticate endpoints of applications
                         .requestMatchers("/api/crypto/**").permitAll() // Public endpoint
                         .requestMatchers("/api/auth/**").permitAll() // Public endpoint
+                        .requestMatchers("/api/user/**").permitAll() // Public endpoint
                         .requestMatchers("/main/**").authenticated()   // Secure endpoint
                         .anyRequest().authenticated()               // All other endpoints require authentication
                 )
