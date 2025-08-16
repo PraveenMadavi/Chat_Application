@@ -33,7 +33,7 @@ public class UserUtilityController {
 
     private static final Logger logger = LoggerFactory.getLogger(UserUtilityController.class);
 
-    @GetMapping("/is-present")
+    @PostMapping("/is-present")
     public ResponseEntity<Boolean> isUserPresent(@RequestBody CheckMail mail) {
         boolean exists = userRepository.findByEmail(mail.getEmail()).isPresent();
 
