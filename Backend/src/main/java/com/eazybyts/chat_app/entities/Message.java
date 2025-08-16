@@ -27,8 +27,4 @@ public class Message {
     @ManyToOne(fetch = FetchType.LAZY)
 //    @JoinColumn()
     private ChatRoom chatRoom;
-
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "user_id")
-//    private User user;
 }

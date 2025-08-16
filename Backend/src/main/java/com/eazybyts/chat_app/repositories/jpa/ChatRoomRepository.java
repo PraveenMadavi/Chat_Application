@@ -9,9 +9,9 @@ import java.util.List;
 
 @Repository
 public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
-    List<ChatRoom> findByIsPrivateFalse();
-    List<ChatRoom> findByCreatedBy(User user);
-    List<ChatRoom> findByIsPrivateFalseOrCreatedBy(User user);
+//    List<ChatRoom> findByIsPrivateFalse();
+//    List<ChatRoom> findByCreatedBy(User user);
+//    List<ChatRoom> findByIsPrivateFalseOrCreatedBy(User user);
 
     // findByRoomId(roomId);  already provided <--- it returns optional ChatRoom
 }

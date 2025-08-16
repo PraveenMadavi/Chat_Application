@@ -32,10 +32,10 @@ public class ChatRoomService {
         return chatRoomRepository.save(chatRoom);
     }
 
-    public List<ChatRoom> getAvailableChatRooms(Long userId) {
-        User user = userService.getUserById(userId);
-        return chatRoomRepository.findByIsPrivateFalseOrCreatedBy(user);
-    }
+//    public List<ChatRoom> getAvailableChatRooms(Long userId) {
+//        User user = userService.getUserById(userId);
+//        return chatRoomRepository.findByIsPrivateFalseOrCreatedBy(user);
+//    }
 
     // Other service methods
 }

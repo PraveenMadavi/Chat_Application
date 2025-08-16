@@ -32,10 +32,17 @@ public class ChatRoom {
 
     @Column(updatable = false)
     @CreationTimestamp
-    private Instant createdAt;
+    private Instant createdAt = Instant.now();
 
-    @Column(name = "is_private")
-    private boolean isPrivate;
+    private boolean Private;
+
+    @ManyToMany
+    @JoinTable(
+            name = "chat_room_members",
+            joinColumns = @JoinColumn(name = "chat_room_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    private List<User> members = new ArrayList<>();
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Message> messages = new ArrayList<>();
@@ -49,6 +56,14 @@ public class ChatRoom {
     public void removeMessage(Message message) {
         messages.remove(message);
         message.setChatRoom(null);
+    }
+
+    public void addMember(User user){
+        members.add(user);
+    }
+
+    public void removeMember(User user){
+        members.remove(user);
     }
 
 }
