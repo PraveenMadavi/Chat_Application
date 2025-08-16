@@ -34,15 +34,18 @@ public class UserUtilityController {
     private static final Logger logger = LoggerFactory.getLogger(UserUtilityController.class);
 
     @PostMapping("/is-present")
-    public ResponseEntity<Boolean> isUserPresent(@RequestBody CheckMail mail) {
-        boolean exists = userRepository.findByEmail(mail.getEmail()).isPresent();
+    public ResponseEntity<?> isUserPresent(@RequestBody CheckMail mail) {
+        Optional<User> friend = userRepository.findByEmail(mail.getEmail());
 
-        if (exists) {
+        if (friend.isPresent()) {
             logger.info("Email {} is present.", mail.getEmail());
-            return ResponseEntity.ok(true);
+            FriendInfo friendInfo = new FriendInfo();
+            friendInfo.setId(friendInfo.id);
+            friendInfo.setUsername(friendInfo.getUsername());
+            return ResponseEntity.ok(friend.get().getId());
         } else {
             logger.warn("Email {} is not present.", mail.getEmail());
-            return ResponseEntity.ok(false);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Email is not present");
         }
     }
 
@@ -66,10 +69,12 @@ public class UserUtilityController {
 
         // Create new chat room
         ChatRoom chatRoom = new ChatRoom();
-        chatRoom.setName(roomInfo.getName());
-        chatRoom.setDescription(roomInfo.getDescription());
+//        chatRoom.setName(roomInfo.getName());
+//        chatRoom.setDescription(roomInfo.getDescription());
         chatRoom.setCreatedBy(creator);
+        if (!roomInfo.isPrivate){
         chatRoom.setPrivate(roomInfo.isPrivate()); // Assuming you add this field to RoomInfo
+        }
 
         // Add members
         chatRoom.addMember(creator);
@@ -158,6 +163,11 @@ public class UserUtilityController {
         private String name;
         private String description;
         private boolean isPrivate; // Added this field
+    }
+    @Data
+    public static class FriendInfo{
+        private Long id;
+        private String username;
     }
 
 }

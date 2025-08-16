@@ -34,7 +34,7 @@ public class ChatRoom {
     @CreationTimestamp
     private Instant createdAt = Instant.now();
 
-    private boolean Private;
+    private boolean Private = true;
 
     @ManyToMany
     @JoinTable(
