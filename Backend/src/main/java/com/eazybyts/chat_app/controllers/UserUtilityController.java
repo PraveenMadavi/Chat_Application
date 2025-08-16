@@ -20,7 +20,7 @@ import java.time.Instant;
 import java.util.Optional;
 
 @RestController
-@RequestMapping ("/ api/user")
+@RequestMapping ("/api/user")
 public class UserUtilityController {
     @Autowired
     UserRepository userRepository;
