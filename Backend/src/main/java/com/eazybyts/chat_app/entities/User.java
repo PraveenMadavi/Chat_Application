@@ -13,7 +13,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString
+@ToString(exclude ="chatRooms" )
 public class User {
 
     @Id
@@ -65,7 +65,7 @@ public class User {
     }
 
     // One-to-Many relationship with ChatRoom
-    @OneToMany(mappedBy ="createdBy", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy ="createdBy", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<ChatRoom> chatRooms = new ArrayList<>();
 
 

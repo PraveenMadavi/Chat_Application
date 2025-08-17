@@ -1,12 +1,15 @@
 package com.eazybyts.chat_app.controllers;
 
-import com.eazybyts.chat_app.dto.MessageResponseDTO;
+import com.eazybyts.chat_app.dto.MessageRequestDTO;
 import com.eazybyts.chat_app.entities.ChatRoom;
 import com.eazybyts.chat_app.entities.Message;
 import com.eazybyts.chat_app.entities.User;
 import com.eazybyts.chat_app.repositories.jpa.ChatRoomRepository;
 import com.eazybyts.chat_app.repositories.jpa.MessageRepository;
 import com.eazybyts.chat_app.repositories.jpa.UserRepository;
+import jakarta.persistence.Column;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ManyToOne;
 import jakarta.validation.Valid;
 import lombok.Data;
 import lombok.ToString;
@@ -18,6 +21,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -74,7 +78,7 @@ public class UserUtilityController {
 //        chatRoom.setName(roomInfo.getName());
 //        chatRoom.setDescription(roomInfo.getDescription());
         chatRoom.setCreatedBy(creator);
-        if (!roomInfo.isPrivate){
+        if (roomInfo.isPrivate){
         chatRoom.setPrivate(roomInfo.isPrivate()); // Assuming you add this field to RoomInfo
         }
 
@@ -85,11 +89,15 @@ public class UserUtilityController {
         // Save the chat room
         ChatRoom savedChatRoom = chatRoomRepository.save(chatRoom);
         logger.info("Chat Room Created.");
-        return ResponseEntity.ok(savedChatRoom);
+        ChatRoomDTO chatRoomDTO = new ChatRoomDTO();
+        chatRoomDTO.setId(savedChatRoom.getId());
+        chatRoomDTO.setMemberIds(savedChatRoom.getMembers().stream().map(User::getId).toList());
+        System.out.println(chatRoomDTO);
+        return ResponseEntity.ok(chatRoomDTO); //Learning : always sent dto, not full entity object to stay away from nesting loops.
     }
 
     @PostMapping("/messages")
-    public ResponseEntity<?> saveMessage(@Valid @RequestBody MessageResponseDTO messageDTO) {
+    public ResponseEntity<?> saveMessage(@Valid @RequestBody MessageRequestDTO messageDTO) {
         // Validate required fields
         if (messageDTO.getRoomId() == null) {
             return ResponseEntity.badRequest().body("Room ID is required");
@@ -121,7 +129,6 @@ public class UserUtilityController {
         message.setRead(false);   // Default to unread
         message.setTime(Instant.now());
         message.setSenderName(messageDTO.getSenderName());
-        message.setChatRoom(chatRoom);
 
         Message savedMessage = messageRepository.save(message);
 
@@ -130,15 +137,17 @@ public class UserUtilityController {
         chatRoomRepository.save(chatRoom);
 
         // Convert to response DTO
-        MessageResponseDTO responseDTO = getMessageResponseDTO(savedMessage);
+        MessageRequestDTO responseDTO = getMessageResponseDTO(savedMessage);
 
         logger.info("Message saved in roomId: {}", messageDTO.getRoomId());
 
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDTO);
     }
 
-    private static MessageResponseDTO getMessageResponseDTO(Message savedMessage) {
-        MessageResponseDTO responseDTO = new MessageResponseDTO();
+
+
+    public static MessageRequestDTO getMessageResponseDTO(Message savedMessage) {
+        MessageRequestDTO responseDTO = new MessageRequestDTO();
         responseDTO.setId(savedMessage.getId());
         responseDTO.setRoomId(savedMessage.getRoomId());
         responseDTO.setRecipientId(savedMessage.getRecipientId());
@@ -150,6 +159,20 @@ public class UserUtilityController {
         responseDTO.setSenderName(savedMessage.getSenderName());
         return responseDTO;
     }
+
+//    @Data
+//    public static class MessageResponseDTO{
+//        private Long id;
+//        private Long roomId;
+//        private Long recipientId;
+//        private Long senderId;
+//        private String content;
+//        private boolean read;    //true = read || false = unread
+//        private Instant time;
+//        private boolean status;  // true = delivered || false = undelivered
+////        private String senderName; // User.username
+//    }
+
 
 
     // DTO classes
@@ -172,6 +195,13 @@ public class UserUtilityController {
     public static class FriendInfo{
         private Long id;
         private String username;
+    }
+
+    @Data
+    @ToString
+    public static class ChatRoomDTO{
+        private Long id;
+        private List<Long> memberIds;
     }
 
 }

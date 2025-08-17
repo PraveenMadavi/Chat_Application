@@ -3,6 +3,7 @@ package com.eazybyts.chat_app.entities;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 import java.time.Instant;
 
@@ -10,6 +11,8 @@ import java.time.Instant;
 @Table(name = "messages")
 @Getter
 @Setter
+//@ToString(exclude = "chatRoom")
+@ToString
 public class Message {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,8 +26,7 @@ public class Message {
     private Instant time;
     private boolean status;  // true = delivered || false = undelivered
     private String senderName; // User.username
-
-    @ManyToOne(fetch = FetchType.LAZY)
+//    @ManyToOne(fetch = FetchType.LAZY)
 //    @JoinColumn()
-    private ChatRoom chatRoom;
+//    private ChatRoom chatRoom;
 }

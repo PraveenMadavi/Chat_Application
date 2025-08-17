@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.Instant;
@@ -14,6 +15,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString(exclude = {"createdBy","members", "messages"})
 public class ChatRoom {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,7 +30,7 @@ public class ChatRoom {
     // Many-to-One relationship with User
 //    @ManyToOne(fetch = FetchType.LAZY)
 //    @JoinColumn(name = "user_id", nullable = false)
-    @ManyToOne()
+    @ManyToOne(fetch = FetchType.LAZY)
     private User createdBy;
 
     @Column(updatable = false)
@@ -37,7 +39,7 @@ public class ChatRoom {
 
     private boolean Private = true;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "chat_room_members",
             joinColumns = @JoinColumn(name = "chat_room_id"),
@@ -45,18 +47,18 @@ public class ChatRoom {
     )
     private List<User> members = new ArrayList<>();
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true , fetch = FetchType.LAZY)
     private List<Message> messages = new ArrayList<>();
 
 
     public void addMessage(Message message) {             //
         messages.add(message);
-        message.setChatRoom(this);
+//        message.setChatRoom(this);
     }
 
     public void removeMessage(Message message) {
         messages.remove(message);
-        message.setChatRoom(null);
+//        message.setChatRoom(null);
     }
 
     public void addMember(User user){

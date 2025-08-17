@@ -6,7 +6,7 @@ import java.time.Instant;
 
 @Data
 
-public class MessageResponseDTO {
+public class MessageRequestDTO {
     private Long id;
     private Long roomId;
     private Long recipientId;
