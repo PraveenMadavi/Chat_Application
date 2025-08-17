@@ -26,8 +26,9 @@ public class ChatRoom {
     private String description;
 
     // Many-to-One relationship with User
-    @ManyToOne(fetch = FetchType.LAZY)
+//    @ManyToOne(fetch = FetchType.LAZY)
 //    @JoinColumn(name = "user_id", nullable = false)
+    @ManyToOne()
     private User createdBy;
 
     @Column(updatable = false)

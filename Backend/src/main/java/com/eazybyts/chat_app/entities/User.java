@@ -65,7 +65,7 @@ public class User {
     }
 
     // One-to-Many relationship with ChatRoom
-    @OneToMany(mappedBy = "createdBy", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy ="createdBy", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ChatRoom> chatRooms = new ArrayList<>();
 
 
