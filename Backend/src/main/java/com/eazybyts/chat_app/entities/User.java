@@ -4,8 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "users")
@@ -41,7 +41,7 @@ public class User {
     private Instant createdAt = Instant.now();
 
     @Column(name = "updated_at")
-    private Instant updatedAt = Instant.now();
+    private Instant updatedAt;
 
     @Column(name = "is_active")
     private boolean isActive = true;
@@ -64,18 +64,26 @@ public class User {
         ONLINE, OFFLINE, AWAY, BUSY
     }
 
-    // One-to-Many relationship with ChatRoom
-    @OneToMany(mappedBy ="createdBy", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<ChatRoom> chatRooms = new ArrayList<>();
+//    @ManyToMany(fetch = FetchType.LAZY)
+//    @JoinTable(
+//            name = "chat_room_members", // This should match the join table name in ChatRoom
+//            joinColumns = @JoinColumn(name = "user_id"),
+//            inverseJoinColumns = @JoinColumn(name = "chat_room_id")
+//    )
+//    private Set<ChatRoom> chatRooms = new HashSet<>();
+
+    @ManyToMany(mappedBy = "members", fetch = FetchType.LAZY)
+    private Set<ChatRoom> chatRooms = new HashSet<>();
 
 
     public void addChatRoom(ChatRoom chatRoom) {
-        chatRooms.add(chatRoom);
-        chatRoom.setCreatedBy(this);
+        this.chatRooms.add(chatRoom);
+        chatRoom.getMembers().add(this);
     }
 
     public void removeChatRoom(ChatRoom chatRoom) {
-        chatRooms.remove(chatRoom);
-        chatRoom.setCreatedBy(null);
+        this.chatRooms.remove(chatRoom);
+        chatRoom.getMembers().remove(this);
     }
+
 }

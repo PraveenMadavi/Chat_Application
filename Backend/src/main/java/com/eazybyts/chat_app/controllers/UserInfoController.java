@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("api/user")
-public class UserInfoController {
+public class UserInfoController {  // this controller not in use so delete this later
     @Autowired
     UserService userService;
 

@@ -1,110 +1,111 @@
 package com.eazybyts.chat_app.controllers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.eazybyts.chat_app.components.RSAUtil;
-import lombok.Data;
+import com.eazybyts.chat_app.dto.ChatMessage;
+import com.eazybyts.chat_app.entities.ChatRoom;
+import com.eazybyts.chat_app.entities.Message;
+import com.eazybyts.chat_app.repositories.jpa.ChatRoomRepository;
+import com.eazybyts.chat_app.repositories.jpa.MessageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
+import org.springframework.messaging.simp.annotation.SendToUser;
 import org.springframework.stereotype.Controller;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.time.Instant;
+import java.util.Objects;
+import java.util.Optional;
 
 @Controller
 public class ChatController {
 
     @Autowired
-    private SimpMessagingTemplate messagingTemplate;
-
+    ChatRoomRepository chatRoomRepository;
     @Autowired
-    private RSAUtil rsaUtil;
+    MessageRepository messageRepository;
 
-    private final Map<String, UserSession> activeSessions = new HashMap<>();
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    @MessageMapping("/chat.room.{roomId}")
+    @SendTo("/topic/room.{roomId}") //destination url
+    public ChatMessage sendMessage(@DestinationVariable Long roomId,
+                                   ChatMessage chatMessage) {
+        System.out.println("Received message for room: " + roomId);
 
-    @MessageMapping("/chat.register")
-    public void register(@Payload RegisterMessage message) {
-        UserSession session = new UserSession();
-        session.setUserId(message.getUserId());
-        session.setPublicKey(message.getPublicKey());
-        activeSessions.put(message.getUserId(), session);
-    }
-
-    @MessageMapping("/chat.keyExchange")
-    public void handleKeyExchange(@Payload KeyExchangeMessage message) throws Exception {
-        UserSession sender = activeSessions.get(message.getSenderId());
-        UserSession recipient = activeSessions.get(message.getRecipientId());
-
-        if (recipient != null) {
-            // Encrypt the AES key with recipient's public key
-            String encryptedKey = rsaUtil.encrypt(message.getAesKey(), recipient.getPublicKey());
-
-            KeyExchangeResponse response = new KeyExchangeResponse();
-            response.setSenderId(message.getSenderId());
-            response.setEncryptedAesKey(encryptedKey);
-            response.setIv(message.getIv());
-
-            messagingTemplate.convertAndSendToUser(
-                    message.getRecipientId(),
-                    "/queue/keyExchange",
-                    response
-            );
+        // Check if room exists
+        Optional<ChatRoom> chatRoomOpt = chatRoomRepository.findById(roomId);
+        if (chatRoomOpt.isEmpty()) {
+            System.err.println("Chat room not found: " + roomId);
+            // You might want to throw an exception or return an error message
+            return createErrorMessage("Room not found: " + roomId);
         }
+
+        ChatRoom chatRoom = chatRoomOpt.get();
+
+        // Save message to database
+        Message message = new Message();
+        message.setContent(chatMessage.getText()); // Use getter
+        message.setChatRoom(chatRoom);
+        message.setSenderId(chatMessage.getSenderId());
+        message.setSenderName(chatMessage.getSenderName());
+        message.setTime(Instant.now());
+        message.setStatus(true);
+
+        Message savedMessage = messageRepository.save(message);
+
+        // Convert savedMessage back to ChatMessage DTO
+        ChatMessage responseMessage = getMessage(roomId, chatMessage, savedMessage);
+
+        System.out.println("Message saved and broadcast: " + responseMessage.getId());
+        return responseMessage;
     }
 
-    @MessageMapping("/chat.send")
-    public void sendMessage(@Payload EncryptedMessage message) throws Exception {
-        // In a real app, you would decrypt the message with the AES key
-        // and verify the sender, then re-encrypt for the recipient
-
-        // For simplicity, we'll just forward the encrypted message
-        messagingTemplate.convertAndSendToUser(
-                message.getRecipientId(),
-                "/queue/messages",
-                message
-        );
+    private static ChatMessage getMessage(Long roomId, ChatMessage chatMessage, Message savedMessage) {
+        ChatMessage responseMessage = new ChatMessage();
+        responseMessage.setId(savedMessage.getId());
+        responseMessage.setText(savedMessage.getContent());
+        responseMessage.setRoomId(roomId);
+        responseMessage.setSenderId(chatMessage.getSenderId());
+        responseMessage.setSenderName(chatMessage.getSenderName());
+        responseMessage.setSenderAvatar(chatMessage.getSenderAvatar());
+        responseMessage.setTimestamp(savedMessage.getTime().toString());
+        responseMessage.setType(chatMessage.getType());
+        responseMessage.setStatus("sent"); // Changed to DELIVERED since it's being broadcast
+        return responseMessage;
     }
 
-    // DTO classes
-    @Data
-    public static class RegisterMessage {
-        private String userId;
-        private String publicKey;
+    private static ChatMessage getChatMessage(Long roomId, ChatMessage chatMessage, Message savedMessage) {
+        return getMessage(roomId, chatMessage, savedMessage);
     }
 
-    @Data
-    public static class KeyExchangeMessage {
-        private String senderId;
-        private String recipientId;
-        private String aesKey;
-        private String iv;
+    @MessageMapping("/chat.addUser")
+    @SendToUser("/queue/messages")
+    public ChatMessage addUser(ChatMessage message,
+                               SimpMessageHeaderAccessor headerAccessor) {
+        // Add user to session
+        Objects.requireNonNull(headerAccessor.getSessionAttributes()).put("username", message.getSenderName());
+        return message;
     }
 
-    @Data
-    public static class KeyExchangeResponse {
-        private String senderId;
-        private String encryptedAesKey;
-        private String iv;
-    }
 
-    @Data
-    public static class EncryptedMessage {
-        private String messageId = UUID.randomUUID().toString();
-        private String senderId;
-        private String recipientId;
-        private String encryptedContent;
-        private String iv;
-        private long timestamp = System.currentTimeMillis();
-    }
+    //DTO
+//    @Data
+//    public static class ChatMessage {
+//        private Long id;
+//        private String text;
+//        private Long roomId;
+//        private Long senderId;
+//        private String senderName;
+//        private String senderAvatar;
+//        private String timestamp;
+//        private String type; // CHAT, JOIN, LEAVE
+//        private String status; // SENT, DELIVERED, READ
+//    }
 
-    @Data
-    private static class UserSession {
-        private String userId;
-        private String publicKey;
-        private String aesKey;
-        private String iv;
+    private ChatMessage createErrorMessage(String errorMessage) {
+        ChatMessage error = new ChatMessage();
+        error.setType("ERROR");
+        error.setText(errorMessage);
+        error.setTimestamp(Instant.now().toString());
+        return error;
     }
 }

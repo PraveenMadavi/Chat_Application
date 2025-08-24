@@ -4,6 +4,7 @@ import lombok.Data;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
@@ -12,7 +13,6 @@ import java.util.Base64;
 
 @Service
 public class CryptoService {
-
 
     private static final String AES_CBC_PKCS5_PADDING = "AES/CBC/PKCS5Padding";
     private static final int IV_LENGTH = 16; // 16 bytes for AES-CBC
@@ -46,9 +46,22 @@ public class CryptoService {
         }
     }
 
+    public String  decrypt(String encryptedPayload , String iv, byte[] secretKey) throws Exception{
+
+        SecretKey aesKeySpec = new SecretKeySpec(secretKey, "AES");
+
+        IvParameterSpec ivSpec = new IvParameterSpec(Base64.getDecoder().decode(iv));
+        Cipher aesCipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+        aesCipher.init(Cipher.DECRYPT_MODE, aesKeySpec, ivSpec);
+
+        byte[] decryptedData = aesCipher.doFinal(Base64.getDecoder().decode(encryptedPayload));
+
+        return new String(decryptedData, StandardCharsets.UTF_8);
+    }
+
+
+    //record
     public record EncryptedData(String iv, String encryptedData) {}
-
-
 }
 
 

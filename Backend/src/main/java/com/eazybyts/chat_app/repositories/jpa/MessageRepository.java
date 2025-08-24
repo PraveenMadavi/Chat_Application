@@ -18,11 +18,19 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     @Query("SELECT m FROM Message m WHERE m.chatRoom.id = :roomId ORDER BY m.time DESC")
     Page<Message> findByRoomId(@Param("roomId") Long roomId, Pageable pageable);
 
-    // Count messages in a room
-    long countByChatRoom_Id(Long roomId);
+//    // Count messages in a room
+//    long countByChatRoom_Id(Long roomId);
 
-    // Count unread messages in a room
-    long countByChatRoom_IdAndReadFalse(Long roomId);
+    // Add this method to fetch messages by room ID
+    @Query("SELECT m FROM Message m WHERE m.chatRoom.id = :roomId ORDER BY m.time ASC")
+    List<Message> findByChatRoomId(@Param("roomId") Long roomId);
+
+    // Or use this if you want to join fetch to avoid N+1 queries
+    @Query("SELECT m FROM Message m JOIN FETCH m.chatRoom WHERE m.chatRoom.id = :roomId ORDER BY m.time ASC")
+    List<Message> findByChatRoomIdWithFetch(@Param("roomId") Long roomId);
+
+//    // Count unread messages in a room
+//    long countByChatRoom_IdAndReadFalse(Long roomId);
 
     // Get unread messages (non-paginated)
     @Query("SELECT m FROM Message m WHERE m.chatRoom.id = :roomId AND m.read = false ORDER BY m.time DESC")

@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @Transactional
@@ -35,7 +36,7 @@ public class ChatService {
     }
 
 
-    public List<ChatRoom> getUserChatRooms(Long userId) {
+    public Set<ChatRoom> getUserChatRooms(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
         return user.getChatRooms();

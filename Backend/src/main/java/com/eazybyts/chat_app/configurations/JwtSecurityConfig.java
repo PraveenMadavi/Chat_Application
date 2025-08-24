@@ -29,6 +29,8 @@ public class JwtSecurityConfig {
                         .requestMatchers("/api/crypto/**").permitAll() // Public endpoint
                         .requestMatchers("/api/auth/**").permitAll() // Public endpoint
                         .requestMatchers("/api/user/**").permitAll() // Public endpoint
+                        // WebSocket endpoints - permit all for handshake
+                        .requestMatchers("/ws/**", "/app/**", "/topic/**", "/queue/**", "/user/**").permitAll()
                         .requestMatchers("/main/**").authenticated()   // Secure endpoint
                         .anyRequest().authenticated()               // All other endpoints require authentication
                 )

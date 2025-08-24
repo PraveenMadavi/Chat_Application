@@ -9,7 +9,9 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Data
@@ -45,28 +47,30 @@ public class ChatRoom {
             joinColumns = @JoinColumn(name = "chat_room_id"),
             inverseJoinColumns = @JoinColumn(name = "user_id")
     )
-    private List<User> members = new ArrayList<>();
+    private Set<User> members = new HashSet<>();
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true , fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Message> messages = new ArrayList<>();
 
 
     public void addMessage(Message message) {             //
+        message.setChatRoom(this);
         messages.add(message);
-//        message.setChatRoom(this);
     }
 
     public void removeMessage(Message message) {
         messages.remove(message);
-//        message.setChatRoom(null);
+        message.setChatRoom(null);
     }
 
-    public void addMember(User user){
-        members.add(user);
+    public void addMember(User user) {
+        this.members.add(user);
+        user.getChatRooms().add(this);
     }
 
-    public void removeMember(User user){
-        members.remove(user);
+    public void removeMember(User user) {
+        this.members.remove(user);
+        user.getChatRooms().remove(this);
     }
 
 }

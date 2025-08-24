@@ -1,5 +1,6 @@
 package com.eazybyts.chat_app.controllers;
 
+import com.eazybyts.chat_app.dto.ChatMessage;
 import com.eazybyts.chat_app.dto.MessageRequestDTO;
 import com.eazybyts.chat_app.entities.ChatRoom;
 import com.eazybyts.chat_app.entities.Message;
@@ -7,9 +8,6 @@ import com.eazybyts.chat_app.entities.User;
 import com.eazybyts.chat_app.repositories.jpa.ChatRoomRepository;
 import com.eazybyts.chat_app.repositories.jpa.MessageRepository;
 import com.eazybyts.chat_app.repositories.jpa.UserRepository;
-import jakarta.persistence.Column;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.ManyToOne;
 import jakarta.validation.Valid;
 import lombok.Data;
 import lombok.ToString;
@@ -23,9 +21,10 @@ import org.springframework.web.bind.annotation.*;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping ("/api/user")
+@RequestMapping("/api/user")
 public class UserUtilityController {
     @Autowired
     UserRepository userRepository;
@@ -57,6 +56,7 @@ public class UserUtilityController {
 
     @PostMapping("/create-chatroom") //
     public ResponseEntity<?> createRoom(@RequestBody RoomInfo roomInfo) {
+        logger.info("Trying to create room.");
         // Find creator user
         Optional<User> creatorOptional = userRepository.findById(roomInfo.getCreatorId());
         if (creatorOptional.isEmpty()) {
@@ -64,31 +64,51 @@ public class UserUtilityController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Creator user not found");
         }
         User creator = creatorOptional.get();
+        logger.info("creator id:{}", creator.getId());
 
-        // Find participant user
+
+        // Find friend user
         Optional<User> friendOptional = userRepository.findById(roomInfo.getFriendId());
         if (friendOptional.isEmpty()) {
-            logger.error("Chat room participant not found.");
+            logger.error("Chat room friend not found.");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Participant user not found");
         }
-        User participant = friendOptional.get();
+        User friend = friendOptional.get();
+        logger.info("Room creating with id: {}", friend.getId());
 
         // Create new chat room
         ChatRoom chatRoom = new ChatRoom();
 //        chatRoom.setName(roomInfo.getName());
 //        chatRoom.setDescription(roomInfo.getDescription());
-        chatRoom.setCreatedBy(creator);
-        if (roomInfo.isPrivate){
-        chatRoom.setPrivate(roomInfo.isPrivate()); // Assuming you add this field to RoomInfo
+
+        if (roomInfo.isPrivate) {
+            chatRoom.setPrivate(roomInfo.isPrivate()); // Assuming you add this field to RoomInfo
         }
 
+        //set creator
+        chatRoom.setCreatedBy(creator);
         // Add members
         chatRoom.addMember(creator);
-        chatRoom.addMember(participant);
+        chatRoom.addMember(friend);
 
         // Save the chat room
         ChatRoom savedChatRoom = chatRoomRepository.save(chatRoom);
-        logger.info("Chat Room Created.");
+        logger.info("ChatRoom created and saved successfully");
+
+//        try {
+//            //add saved chat room in members list
+//            creator.addChatRoom(savedChatRoom);
+//            friend.addChatRoom(savedChatRoom);
+////            logger.info("Created chatroom is added in both users list of chatroom");
+//            //save both users
+//            userRepository.save(creator);
+//            userRepository.save(friend);
+//            logger.info("chatroom added and saved in both users.");
+//        } catch (Exception e) {
+//            throw new RuntimeException(e);
+//        }
+
+        logger.info("Chat Room Created with id : {}", savedChatRoom.getId());
         ChatRoomDTO chatRoomDTO = new ChatRoomDTO();
         chatRoomDTO.setId(savedChatRoom.getId());
         chatRoomDTO.setMemberIds(savedChatRoom.getMembers().stream().map(User::getId).toList());
@@ -121,7 +141,7 @@ public class UserUtilityController {
 
         // Create and save the message
         Message message = new Message();
-        message.setRoomId(messageDTO.getRoomId());
+        message.setChatRoom(chatRoom);
         message.setRecipientId(messageDTO.getRecipientId());
         message.setSenderId(messageDTO.getSenderId());
         message.setContent(messageDTO.getContent());
@@ -144,12 +164,86 @@ public class UserUtilityController {
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDTO);
     }
 
+    @GetMapping("/getRooms/{userId}")
+    public List<Long> getRooms(@PathVariable Long userId) {
+        logger.info("userId requested for roomIds : {}", userId);
+        User referenceById = userRepository.getReferenceById(userId);
+        List<Long> roomIds = referenceById.getChatRooms().stream().map(ChatRoom::getId).toList();
+        System.out.println("Room Ids : " + roomIds);
+        return roomIds;
+    }
+
+    @GetMapping("/{roomId}/messages")
+    public ResponseEntity<List<ChatMessage>> getMessages(@PathVariable Long roomId) {
+        logger.info("Sending messages of room id : {}", roomId);
+
+        try {
+            // Check if room exists
+            Optional<ChatRoom> chatRoomOpt = chatRoomRepository.findById(roomId);
+            if (chatRoomOpt.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+
+            ChatRoom chatRoom = chatRoomOpt.get(); //just to check room exist or not.
+
+            // Eagerly fetch messages to avoid LazyInitializationException
+            List<Message> messages = messageRepository.findByChatRoomId(roomId);
+
+            // Convert to DTOs
+            List<ChatMessage> messageDTOs = messages.stream()
+                    .map(ChatMessage::fromEntity)
+                    .collect(Collectors.toList());
+
+            return ResponseEntity.ok(messageDTOs);
+
+        } catch (Exception e) {
+            logger.error("Error fetching messages for room {}", roomId, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @GetMapping("/rooms/{roomId}/{userId}")
+    public ResponseEntity<?> getRoomDetails(@PathVariable Long roomId, @PathVariable Long userId) {
+        logger.info("Trying to fetch details roomId: {}, userId: {}", roomId, userId);
+
+        try {
+            ChatRoom chatRoom = chatRoomRepository.findById(roomId)
+                    .orElseThrow(() -> new RuntimeException("Chat room not found"));
+
+            RoomDetail roomDetail = new RoomDetail();
+
+            // Find the other user (not equal to the provided userId)  //only for private room..... edit later for public rooms after testing
+            Optional<User> otherUser = chatRoom.getMembers().stream()
+                    .filter(member -> !member.getId().equals(userId))
+                    .findFirst();
+
+            if (otherUser.isPresent()) {
+                roomDetail.setName(otherUser.get().getUsername());
+//                roomDetail.setAvatar(otherUser.get().getProfilePictureUrl());
+                roomDetail.setAvatar("https://cdn-icons-png.flaticon.com/512/10903/10903422.png"); //temp
+
+            } else {
+                // Fallback if no other user found (shouldn't happen in a proper chat room)
+                roomDetail.setName("Unknown User");
+                roomDetail.setAvatar("https://cdn-icons-png.flaticon.com/512/10903/10903422.png");
+            }
+
+            return ResponseEntity.ok(roomDetail);
+
+        } catch (Exception e) {
+            logger.error("Error fetching room details for roomId: {}, userId: {}", roomId, userId, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error fetching room details: " + e.getMessage());
+        }
+    }
 
 
+    //DTOs
     public static MessageRequestDTO getMessageResponseDTO(Message savedMessage) {
         MessageRequestDTO responseDTO = new MessageRequestDTO();
         responseDTO.setId(savedMessage.getId());
-        responseDTO.setRoomId(savedMessage.getRoomId());
+//        responseDTO.setRoomId(savedMessage.getRoomId());
+        responseDTO.setRoomId(savedMessage.getChatRoom().getId()); // Learning : only sent room id instead of whole chatroom OB.
         responseDTO.setRecipientId(savedMessage.getRecipientId());
         responseDTO.setSenderId(savedMessage.getSenderId());
         responseDTO.setContent(savedMessage.getContent());
@@ -170,14 +264,14 @@ public class UserUtilityController {
 //        private boolean read;    //true = read || false = unread
 //        private Instant time;
 //        private boolean status;  // true = delivered || false = undelivered
-////        private String senderName; // User.username
-//    }
 
+    /// /        private String senderName; // User.username
+//    }
 
 
     // DTO classes
     @Data
-    public static class CheckMail{
+    public static class CheckMail {
         private String email; //recipient email
     }
 
@@ -192,16 +286,23 @@ public class UserUtilityController {
 
     @Data
     @ToString
-    public static class FriendInfo{
+    public static class FriendInfo {
         private Long id;
         private String username;
     }
 
     @Data
     @ToString
-    public static class ChatRoomDTO{
+    public static class ChatRoomDTO {
         private Long id;
         private List<Long> memberIds;
+    }
+
+    @Data
+    public static class RoomDetail {
+        private String name;
+        private String Avatar;
+        //last_message , time, unread, online, typing, lastseen, isGroup, participants,
     }
 
 }
