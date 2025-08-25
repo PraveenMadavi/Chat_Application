@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import FullScreenLoader from './FullScreenLoader';
 import { useNavigate } from 'react-router-dom';
+import { useUser } from './Conetx/UserContext';
 
 
 // Replace your axios instance creation with this
@@ -31,12 +32,19 @@ const AuthForms = () => {
         username: '',
         password: ''
     });
+    const [formErrors, setFormErrors] = useState({
+        name: '',
+        email: '',
+        username: '',
+        password: ''
+    });
     // Inside your component
     const navigate = useNavigate();
     const [showSuccess, setShowSuccess] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [aesKey, setAesKey] = useState(null); // Store the AES key in state
-
+    const { login, setAesBase64Key } = useUser();
+    // const {aesBase64Key} = useUser();
     const BaseURl = import.meta.env.VITE_API_BASE_URL
     const didRunRef = useRef(false);
     //..........................................................................................
@@ -62,7 +70,7 @@ const AuthForms = () => {
     }
 
     // 2. Generate AES Key and Send to Server
-    async function sendAesKey(publicKey) {
+    async function sendAesKey(publicKey) {                      
         // Generate AES key
         const aesKey = await crypto.subtle.generateKey(
             { name: "AES-CBC", length: 128 },
@@ -73,24 +81,23 @@ const AuthForms = () => {
         // Export raw AES key bytes
         const rawAesKey = await crypto.subtle.exportKey("raw", aesKey);
 
-        // Encrypt AES key with RSA public key
+        // 3. Convert raw key to ArrayBuffer if it isn't already
+        const aesKeyBuffer = rawAesKey instanceof ArrayBuffer
+            ? rawAesKey
+            : new Uint8Array(rawAesKey).buffer;
+
+        // 4. Encrypt AES key with RSA public key
         const encryptedAesKey = await crypto.subtle.encrypt(
             { name: "RSA-OAEP" },
             publicKey,
-            rawAesKey
+            aesKeyBuffer  // Ensure this is ArrayBuffer
         );
 
-        // Send encrypted AES key to server
+        // for base64key
+        const base64Key = arrayBufferToBase64(aesKeyBuffer); //........................................ set aes key for subsequent encryption and decryption process 
+        setAesBase64Key(base64Key);
 
-        // const response = await axios.post(
-        //     `${BaseURl}/crypto/set-aes-key`,
-        //     {
-        //         encryptedAesKey: btoa(String.fromCharCode(...new Uint8Array(encryptedAesKey)))
-        //     },
-        //     {
-        //         withCredentials: true  // This makes Axios send cookies/session ID
-        //     }
-        // );
+
 
         const response = await api.post('/crypto/set-aes-key', {
             encryptedAesKey: btoa(String.fromCharCode(...new Uint8Array(encryptedAesKey)))
@@ -135,7 +142,7 @@ const AuthForms = () => {
                 )
             },
             {
-                withCredentials: true // ये जरूरी है same session के लिए
+                withCredentials: true
             }
         );
 
@@ -199,38 +206,7 @@ const AuthForms = () => {
         return Promise.reject(error);
     });
 
-    // Modified response interceptor to handle decryption
-    api.interceptors.response.use(
-        async (response) => {
-            // Decrypt response data if encrypted
-            if (aesKey && response.data.encryptedData) {
-                try {
-                    const iv = base64ToArrayBuffer(response.data.iv);
-                    const decryptedData = await window.crypto.subtle.decrypt(
-                        {
-                            name: "AES-CBC",
-                            iv: iv
-                        },
-                        aesKey,
-                        base64ToArrayBuffer(response.data.encryptedData)
-                    );
 
-                    response.data = JSON.parse(new TextDecoder().decode(decryptedData));
-                } catch (error) {
-                    console.error('Decryption failed:', error);
-                    throw error;
-                }
-            }
-            return response;
-        },
-        (error) => {
-            if (error.response?.status === 401) {
-                localStorage.removeItem('accessToken');
-                return Promise.reject(new Error('Authentication failed'));
-            }
-            return Promise.reject(error);
-        }
-    );
 
     // Chat functionality
     const chatContainerRef = useRef(null);
@@ -304,9 +280,70 @@ const AuthForms = () => {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
+    // Validation functions
+    const validateEmail = (email) => {
+        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return re.test(String(email).toLowerCase());
+    };
+
+    const validateUsername = (username) => {
+        return username.length >= 3;
+    };
+
+    const validatePassword = (password) => {
+        return password.length >= 6;
+    };
+
+    const validateForm = () => {
+        const errors = {};
+        let isValid = true;
+
+        if (!isLogin) {
+            if (!formData.name.trim()) {
+                errors.name = 'Name is required';
+                isValid = false;
+            }
+        }
+
+        // Email is always required
+        if (!formData.email) {
+            errors.email = 'Email is required';
+            isValid = false;
+        } else if (!validateEmail(formData.email)) {
+            errors.email = 'Please enter a valid email';
+            isValid = false;
+        }
+
+        // Password is always required
+        if (!formData.password) {
+            errors.password = 'Password is required';
+            isValid = false;
+        } else if (!validatePassword(formData.password)) {
+            errors.password = 'Password must be at least 6 characters';
+            isValid = false;
+        }
+
+        // Username is only required for registration
+        if (!isLogin && !formData.username) {
+            errors.username = 'Username is required';
+            isValid = false;
+        } else if (!isLogin && !validateUsername(formData.username)) {
+            errors.username = 'Username must be at least 3 characters';
+            isValid = false;
+        }
+
+        setFormErrors(errors);
+        return isValid;
+    };
+
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        if (!validateForm()) {
+            return;
+        }
 
         if (!aesKey) {
             alert('Security initialization not complete');
@@ -322,20 +359,24 @@ const AuthForms = () => {
             // 2. Prepare data to be encrypted
             let dataToEncrypt;
             if (isLogin) {
-                // For login: Only include username and password
+                // For login: Only include email and password
                 dataToEncrypt = {
-                    username: formData.username,
+                    username: formData.email,
                     password: formData.password
                 };
             } else {
                 // For registration: Include all form data
-                dataToEncrypt = { ...formData };
+                dataToEncrypt = {
+                    name: formData.name,
+                    email: formData.email,
+                    username: formData.username,
+                    password: formData.password
+                };
             }
+            // console.log("Data being sent:", dataToEncrypt);//............ use log in data 
 
-            console.log("Data being sent:", dataToEncrypt);
 
-
-            // // 2. Convert form data to JSON string
+            // // 2. Convert form data to JSON string...
             const formDataJson = JSON.stringify(dataToEncrypt);
 
 
@@ -392,11 +433,11 @@ const AuthForms = () => {
 
             const url = `${BaseURl}/auth/${isLogin ? 'login' : 'register'}`;
 
-            const { data } = await axios.post(url, payload, config);
+            const { data } = await axios.post(url, payload, config);//...................login url
 
             // 6. Handle success
             if (isLogin) {
-                localStorage.setItem('accessToken', data.token);
+                // localStorage.setItem('accessToken', data.token);
                 // Clear form fields
                 setFormData({
                     name: '',
@@ -404,6 +445,10 @@ const AuthForms = () => {
                     username: '',
                     password: ''
                 });
+                console.log("Login successful, user data:", data);
+
+                // Store user data in context - pass the entire user object
+                login(data); // Assuming your backend returns user data in data.user
 
                 // Show success modal
                 setShowSuccess(true);
@@ -532,34 +577,43 @@ const AuthForms = () => {
                                             placeholder="Full Name"
                                             value={formData.name}
                                             onChange={handleChange}
-                                            className="w-full p-3 bg-white/10 rounded-xl border border-white/20 text-white placeholder-white/50 focus:outline-none"
+                                            className={`w-full p-3 bg-white/10 rounded-xl border ${formErrors.name ? 'border-red-500' : 'border-white/20'} text-white placeholder-white/50 focus:outline-none`}
                                             required
                                         />
+                                        {formErrors.name && (
+                                            <p className="text-red-400 text-xs mt-1">{formErrors.name}</p>
+                                        )}
                                     </div>
                                     <div className="mb-4">
                                         <input
-                                            type="email"
-                                            name="email"
-                                            placeholder="Email Address"
-                                            value={formData.email}
+                                            type="text"
+                                            name="username"
+                                            placeholder="Username"
+                                            value={formData.username}
                                             onChange={handleChange}
-                                            className="w-full p-3 bg-white/10 rounded-xl border border-white/20 text-white placeholder-white/50 focus:outline-none"
-                                            required
+                                            className={`w-full p-3 bg-white/10 rounded-xl border ${formErrors.username ? 'border-red-500' : 'border-white/20'} text-white placeholder-white/50 focus:outline-none`}
+                                            required={!isLogin}
                                         />
+                                        {formErrors.username && (
+                                            <p className="text-red-400 text-xs mt-1">{formErrors.username}</p>
+                                        )}
                                     </div>
                                 </>
                             )}
 
                             <div className="mb-4">
                                 <input
-                                    type="text"
-                                    name="username"
-                                    placeholder="Username"
-                                    value={formData.username}
+                                    type="email"
+                                    name="email"
+                                    placeholder="Email Address"
+                                    value={formData.email}
                                     onChange={handleChange}
-                                    className="w-full p-3 bg-white/10 rounded-xl border border-white/20 text-white placeholder-white/50 focus:outline-none"
+                                    className={`w-full p-3 bg-white/10 rounded-xl border ${formErrors.email ? 'border-red-500' : 'border-white/20'} text-white placeholder-white/50 focus:outline-none`}
                                     required
                                 />
+                                {formErrors.email && (
+                                    <p className="text-red-400 text-xs mt-1">{formErrors.email}</p>
+                                )}
                             </div>
 
                             <div className="mb-6">
@@ -569,9 +623,12 @@ const AuthForms = () => {
                                     placeholder="Password"
                                     value={formData.password}
                                     onChange={handleChange}
-                                    className="w-full p-3 bg-white/10 rounded-xl border border-white/20 text-white placeholder-white/50 focus:outline-none"
+                                    className={`w-full p-3 bg-white/10 rounded-xl border ${formErrors.password ? 'border-red-500' : 'border-white/20'} text-white placeholder-white/50 focus:outline-none`}
                                     required
                                 />
+                                {formErrors.password && (
+                                    <p className="text-red-400 text-xs mt-1">{formErrors.password}</p>
+                                )}
                             </div>
 
                             <button
@@ -658,7 +715,7 @@ const AuthForms = () => {
                 </div>
             </div>
 
-            <style jsx global>{`
+            <style jsx="true" global="true">{`
     .scrollbar-hide::-webkit-scrollbar {
         display: none;
         width: 0;
